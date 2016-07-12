@@ -96,7 +96,7 @@ public class LoginActivity extends BaseActivity {
     private View.OnClickListener onSignUpClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
+            SignUpActivity.startActivity(getActivity());
         }
     };
 
