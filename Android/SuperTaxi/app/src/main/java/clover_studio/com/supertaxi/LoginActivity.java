@@ -173,13 +173,18 @@ public class LoginActivity extends BaseActivity {
                     UserSingleton.getInstance().updateUser(model.data);
                 }
 
-                SuperTaxiApp.getEnterpriseSharedPreferences().setCustomBoolean(Const.PreferencesKey.REMEMBER_ME, cbRememberMe.isChecked());
-                SuperTaxiApp.getEnterpriseSharedPreferences().setCustomString(Const.PreferencesKey.SHA1_PASSWORD, sha1Password);
-                SuperTaxiApp.getEnterpriseSharedPreferences().setCustomString(Const.PreferencesKey.EMAIL_LOGIN, etEmailAddress.getText().toString());
+                SuperTaxiApp.getPreferences().setCustomBoolean(Const.PreferencesKey.REMEMBER_ME, cbRememberMe.isChecked());
+                SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.SHA1_PASSWORD, sha1Password);
+                SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.EMAIL_LOGIN, etEmailAddress.getText().toString());
 
                 hideProgress();
 
-                ChooseTypeActivity.startActivity(getActivity());
+                if(SuperTaxiApp.getPreferences().hasPreferences(Const.PreferencesKey.USER_TYPE)){
+
+                }else{
+                    CreateUserActivity.startActivity(getActivity(), 1);
+//                    UserHomeActivity.startActivity(getActivity());
+                }
                 finish();
 
             }

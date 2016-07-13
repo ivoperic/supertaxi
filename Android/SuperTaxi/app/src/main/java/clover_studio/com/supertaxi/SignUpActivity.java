@@ -16,12 +16,10 @@ import clover_studio.com.supertaxi.api.retrofit.LoginRetroApiInterface;
 import clover_studio.com.supertaxi.base.BaseActivity;
 import clover_studio.com.supertaxi.base.SuperTaxiApp;
 import clover_studio.com.supertaxi.dialog.BasicDialog;
-import clover_studio.com.supertaxi.models.BaseModel;
 import clover_studio.com.supertaxi.models.SignInDataModel;
 import clover_studio.com.supertaxi.models.post_models.PostSignUpModel;
 import clover_studio.com.supertaxi.singletons.UserSingleton;
 import clover_studio.com.supertaxi.utils.Const;
-import clover_studio.com.supertaxi.utils.LogCS;
 import clover_studio.com.supertaxi.utils.SecretGeneratorUtils;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -123,14 +121,14 @@ public class SignUpActivity extends BaseActivity {
                     UserSingleton.getInstance().updateUser(model.data);
                 }
 
-                SuperTaxiApp.getEnterpriseSharedPreferences().setCustomBoolean(Const.PreferencesKey.REMEMBER_ME, true);
-                SuperTaxiApp.getEnterpriseSharedPreferences().setCustomString(Const.PreferencesKey.SHA1_PASSWORD, sha1Password);
-                SuperTaxiApp.getEnterpriseSharedPreferences().setCustomString(Const.PreferencesKey.EMAIL_LOGIN, etEmailAddress.getText().toString());
+                SuperTaxiApp.getPreferences().setCustomBoolean(Const.PreferencesKey.REMEMBER_ME, true);
+                SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.SHA1_PASSWORD, sha1Password);
+                SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.EMAIL_LOGIN, etEmailAddress.getText().toString());
 
                 hideProgress();
 
-//                HomeActivity.startActivity(getActivity());
-//                finish();
+                ChooseTypeActivity.startActivity(getActivity());
+                finish();
 
             }
 
