@@ -335,7 +335,7 @@ public class LoginActivity extends BaseActivity {
                     UserSingleton.getInstance().updateToken(model.data.token_new);
                 }
 
-                if(model.data.user != null){
+                if(model.data != null){
                     UserSingleton.getInstance().updateUser(model.data);
                 }
 
@@ -346,7 +346,7 @@ public class LoginActivity extends BaseActivity {
                 hideProgress();
 
                 if(SuperTaxiApp.getPreferences().hasPreferences(Const.PreferencesKey.USER_TYPE)){
-                    if(SuperTaxiApp.getPreferences().getCustomBoolean(Const.PreferencesKey.USER_CREATED)){
+                    if(!SuperTaxiApp.getPreferences().getCustomBoolean(Const.PreferencesKey.USER_CREATED)){
                         CreateUserActivity.startActivity(getActivity(), UserSingleton.getInstance().getUserType());
                     }else {
                         if(UserSingleton.getInstance().getUserType() == Const.UserType.USER_TYPE_DRIVER){
