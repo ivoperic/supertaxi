@@ -30,7 +30,6 @@ public class SignUpActivity extends BaseActivity {
         activity.startActivity(new Intent(activity, SignUpActivity.class));
     }
 
-    private EditText etUsername;
     private EditText etEmailAddress;
     private EditText etPassword;
     private Button buttonSignUp;
@@ -50,7 +49,6 @@ public class SignUpActivity extends BaseActivity {
             }
         });
 
-        etUsername = (EditText) findViewById(R.id.etUsername);
         etEmailAddress = (EditText) findViewById(R.id.etEmailAddress);
         etPassword = (EditText) findViewById(R.id.etPassword);
         buttonSignUp = (Button) findViewById(R.id.buttonSignUp);
