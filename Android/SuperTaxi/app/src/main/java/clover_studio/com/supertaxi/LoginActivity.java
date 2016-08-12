@@ -109,9 +109,11 @@ public class LoginActivity extends BaseActivity {
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
+        if(SuperTaxiApp.getPreferences().hasPreferences(Const.PreferencesKey.EMAIL_LOGIN)){
+            etEmailAddress.setText(SuperTaxiApp.getPreferences().getCustomString(Const.PreferencesKey.EMAIL_LOGIN));
+        }
         ///******
         etPassword.setText("cloverpass013");
-        etEmailAddress.setText("ivo.peric@clover-studio.com");
         ///******
 
     }
