@@ -116,7 +116,7 @@ public class SignUpActivity extends BaseActivity {
                 }
 
                 if(model.data.user != null){
-                    UserSingleton.getInstance().updateUser(model.data);
+                    UserSingleton.getInstance().updateUser(model.data.user);
                 }
 
                 SuperTaxiApp.getPreferences().setCustomBoolean(Const.PreferencesKey.REMEMBER_ME, true);
