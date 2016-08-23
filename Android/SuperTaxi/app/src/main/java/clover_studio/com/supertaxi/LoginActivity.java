@@ -2,9 +2,11 @@ package clover_studio.com.supertaxi;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -27,6 +29,15 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.core.Callback;
+import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterAuthConfig;
+import com.twitter.sdk.android.core.TwitterCore;
+import com.twitter.sdk.android.core.TwitterException;
+import com.twitter.sdk.android.core.TwitterSession;
+import com.twitter.sdk.android.core.identity.TwitterAuthClient;
+import com.twitter.sdk.android.core.models.User;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,6 +59,7 @@ import clover_studio.com.supertaxi.singletons.UserSingleton;
 import clover_studio.com.supertaxi.utils.Const;
 import clover_studio.com.supertaxi.utils.LogCS;
 import clover_studio.com.supertaxi.utils.SecretGeneratorUtils;
+import io.fabric.sdk.android.Fabric;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -71,6 +83,8 @@ public class LoginActivity extends BaseActivity {
     private LoginButton facebookButton;
     private CallbackManager callbackManager;
     private GoogleApiClient mGoogleApiClient;
+
+    private TwitterAuthClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +123,11 @@ public class LoginActivity extends BaseActivity {
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
+        TwitterAuthConfig authConfig = new TwitterAuthConfig(Const.ApiKeys.TWITTER_CONSUMER_KEY, Const.ApiKeys.TWITTER_CONSUMER_SECRET);
+        Fabric.with(this, new Twitter(authConfig));
+
+        client = new TwitterAuthClient();
+
         if(SuperTaxiApp.getPreferences().hasPreferences(Const.PreferencesKey.EMAIL_LOGIN)){
             etEmailAddress.setText(SuperTaxiApp.getPreferences().getCustomString(Const.PreferencesKey.EMAIL_LOGIN));
         }
@@ -129,7 +148,8 @@ public class LoginActivity extends BaseActivity {
     private View.OnClickListener onTwitterClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
+            showProgress();
+            client.authorize(getActivity(), twitterCallBack);
         }
     };
 
@@ -159,7 +179,7 @@ public class LoginActivity extends BaseActivity {
     private GoogleApiClient.OnConnectionFailedListener onFailedGoogle = new GoogleApiClient.OnConnectionFailedListener() {
         @Override
         public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+            BasicDialog.startOneButtonDialog(getActivity(), getString(R.string.error), getString(R.string.failed_to_get_google_plus_data));
         }
     };
 
@@ -172,6 +192,14 @@ public class LoginActivity extends BaseActivity {
                     try {
                         String userId = object.getString("id");
                         String userEmail = object.getString("email");
+                        String name = object.getString("name");
+                        String imageUrl = "https://graph.facebook.com/" + userId + "/picture?type=large";
+                        if(!TextUtils.isEmpty(name)){
+                            SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.FROM_SIGN_UP_NAME, name);
+                        }
+                        if(!TextUtils.isEmpty(imageUrl)){
+                            SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.FROM_SIGN_UP_IMAGE, imageUrl);
+                        }
                         Log.d("LOG", "FACEBOOK = > EMAIL: " + userEmail + " USERID: " + userId);
 
                         showProgress();
@@ -209,6 +237,61 @@ public class LoginActivity extends BaseActivity {
         }
     };
 
+    private com.twitter.sdk.android.core.Callback<TwitterSession> twitterCallBack = new Callback<TwitterSession>() {
+        @Override
+        public void success(Result<TwitterSession> twitterSessionResult) {
+            if (twitterSessionResult.data != null) {
+
+                Twitter.getApiClient(twitterSessionResult.data).getAccountService().verifyCredentials(true, false, new Callback<User>() {
+
+                    @Override
+                    public void success(Result<User> userResult) {
+                        User user = userResult.data;
+
+                        String userName = user.screenName;
+                        String userId = user.idStr;
+                        String imageString = user.profileImageUrl;
+                        String name = user.name;
+                        if(!TextUtils.isEmpty(name)){
+                            SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.FROM_SIGN_UP_NAME, name);
+                        }
+                        if(!TextUtils.isEmpty(imageString)){
+                            SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.FROM_SIGN_UP_IMAGE, imageString);
+                        }
+                        Log.d("LOG", "TWITTER = > USERNAME: " + userName + " USERID: " + userId);
+
+                        try {
+                            String sha1Password = sha1Password(userId);
+                            getTimeFromServer(userName, sha1Password, true);
+                        } catch (NoSuchAlgorithmException e) {
+                            e.printStackTrace();
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+
+                    @Override
+                    public void failure(TwitterException e) {
+                        hideProgress();
+                        BasicDialog.startOneButtonDialog(getActivity(), getString(R.string.error), getString(R.string.failed_to_get_twitter_data));
+                    }
+                });
+
+            } else {
+                hideProgress();
+                BasicDialog.startOneButtonDialog(getActivity(), getString(R.string.error), getString(R.string.failed_to_get_twitter_data));
+            }
+        }
+
+        @Override
+        public void failure(TwitterException e) {
+            hideProgress();
+            e.printStackTrace();
+            BasicDialog.startOneButtonDialog(getActivity(), getString(R.string.error), getString(R.string.failed_to_get_twitter_data));
+        }
+    };
+
     private View.OnClickListener onSignUpClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -222,6 +305,14 @@ public class LoginActivity extends BaseActivity {
             GoogleSignInAccount acct = result.getSignInAccount();
             String email = acct.getEmail();
             String id = acct.getId();
+            String name = acct.getDisplayName();
+            String imageUrl = acct.getPhotoUrl().toString();
+            if(!TextUtils.isEmpty(name)){
+                SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.FROM_SIGN_UP_NAME, name);
+            }
+            if(!TextUtils.isEmpty(imageUrl)){
+                SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.FROM_SIGN_UP_IMAGE, imageUrl);
+            }
 
             Log.d("LOG", "GOOGLE+ = > EMAIL: " + email + " USERID: " + id);
 
@@ -297,7 +388,7 @@ public class LoginActivity extends BaseActivity {
                 }
 
                 if(model.data.user != null){
-                    UserSingleton.getInstance().updateUser(model.data);
+                    UserSingleton.getInstance().updateUser(model.data.user);
                 }
 
                 SuperTaxiApp.getPreferences().setCustomBoolean(Const.PreferencesKey.REMEMBER_ME, true);
@@ -337,13 +428,29 @@ public class LoginActivity extends BaseActivity {
                     UserSingleton.getInstance().updateToken(model.data.token_new);
                 }
 
-                if(model.data != null){
-                    UserSingleton.getInstance().updateUser(model.data);
+                if(model.data.user != null){
+                    UserSingleton.getInstance().updateUser(model.data.user);
                 }
 
                 SuperTaxiApp.getPreferences().setCustomBoolean(Const.PreferencesKey.REMEMBER_ME, cbRememberMe.isChecked());
                 SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.SHA1_PASSWORD, sha1Password);
                 SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.EMAIL_LOGIN, email);
+
+                boolean typeSelected = false;
+                if(model.data.user != null && model.data.user.user != null){
+                    UserSingleton.getInstance().setUserType(Const.UserType.USER_TYPE_USER);
+                    typeSelected = true;
+                }else if(model.data.user != null && model.data.user.driver != null){
+                    UserSingleton.getInstance().setUserType(Const.UserType.USER_TYPE_DRIVER);
+                    typeSelected = true;
+                }
+
+                if(typeSelected){
+                    if(SuperTaxiApp.getPreferences().hasPreferences(Const.PreferencesKey.USER_TYPE_NAME)
+                            || SuperTaxiApp.getPreferences().hasPreferences(Const.PreferencesKey.DRIVER_TYPE_NAME)){
+                        SuperTaxiApp.getPreferences().setCustomBoolean(Const.PreferencesKey.USER_CREATED, true);
+                    }
+                }
 
                 hideProgress();
 
@@ -386,6 +493,7 @@ public class LoginActivity extends BaseActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
+        client.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
