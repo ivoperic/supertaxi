@@ -132,7 +132,7 @@ public class LoginActivity extends BaseActivity {
             etEmailAddress.setText(SuperTaxiApp.getPreferences().getCustomString(Const.PreferencesKey.EMAIL_LOGIN));
         }
         ///******
-        etPassword.setText("cloverpass013");
+//        etPassword.setText("cloverpass013");
         ///******
 
     }
