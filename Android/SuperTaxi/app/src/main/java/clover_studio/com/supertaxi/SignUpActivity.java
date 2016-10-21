@@ -56,8 +56,8 @@ public class SignUpActivity extends BaseActivity {
         buttonSignUp.setOnClickListener(onSignUpClick);
 
         ///******
-        etPassword.setText("cloverpass013");
-        etEmailAddress.setText("ivo.peric@clover-studio.com");
+        //etPassword.setText("cloverpass013");
+        //etEmailAddress.setText("ivo.peric@clover-studio.com");
         ///******
 
     }
@@ -66,16 +66,16 @@ public class SignUpActivity extends BaseActivity {
         @Override
         public void onClick(View v) {
 
-            if(etPassword.getText().toString().length() == 0){
+            if(etPassword.getText().toString().trim().length() == 0){
                 BasicDialog.startOneButtonDialog(getActivity(), getString(R.string.error), getString(R.string.error_wrong_password));
                 return;
-            }else if(etEmailAddress.getText().toString().length() == 0){
+            }else if(etEmailAddress.getText().toString().trim().length() == 0){
                 BasicDialog.startOneButtonDialog(getActivity(), getString(R.string.error), getString(R.string.error_wrong_email));
                 return;
             }
 
             showProgress();
-            String password = etPassword.getText().toString();
+            String password = etPassword.getText().toString().trim();
             String passwordPlusSalt = password + Const.Secrets.STATIC_SALT;
             try {
                 String sha1Password = SecretGeneratorUtils.SHA1(passwordPlusSalt);
@@ -121,7 +121,7 @@ public class SignUpActivity extends BaseActivity {
 
                 SuperTaxiApp.getPreferences().setCustomBoolean(Const.PreferencesKey.REMEMBER_ME, true);
                 SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.SHA1_PASSWORD, sha1Password);
-                SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.EMAIL_LOGIN, etEmailAddress.getText().toString());
+                SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.EMAIL_LOGIN, etEmailAddress.getText().toString().trim());
 
                 hideProgress();
 
