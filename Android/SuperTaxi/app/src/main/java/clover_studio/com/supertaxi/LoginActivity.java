@@ -132,7 +132,7 @@ public class LoginActivity extends BaseActivity {
             etEmailAddress.setText(SuperTaxiApp.getPreferences().getCustomString(Const.PreferencesKey.EMAIL_LOGIN));
         }
         ///******
-//        etPassword.setText("cloverpass013");
+        //etPassword.setText("cloverpass013");
         ///******
 
     }
@@ -341,8 +341,8 @@ public class LoginActivity extends BaseActivity {
 
         showProgress();
         try {
-            String sha1Password = sha1Password(etPassword.getText().toString());
-            getTimeFromServer(etEmailAddress.getText().toString(), sha1Password, false);
+            String sha1Password = sha1Password(etPassword.getText().toString().trim());
+            getTimeFromServer(etEmailAddress.getText().toString().trim(), sha1Password, false);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
@@ -393,7 +393,7 @@ public class LoginActivity extends BaseActivity {
 
                 SuperTaxiApp.getPreferences().setCustomBoolean(Const.PreferencesKey.REMEMBER_ME, true);
                 SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.SHA1_PASSWORD, sha1Password);
-                SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.EMAIL_LOGIN, etEmailAddress.getText().toString());
+                SuperTaxiApp.getPreferences().setCustomString(Const.PreferencesKey.EMAIL_LOGIN, etEmailAddress.getText().toString().trim());
 
                 hideProgress();
 
